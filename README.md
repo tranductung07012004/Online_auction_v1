@@ -17,6 +17,7 @@ A full-stack online auction platform built with microservices architecture, enab
 - **PostgreSQL** databases (2 separate databases)
 - **Apache Kafka** for message queuing
 - **Docker Compose** for infrastructure
+- **Elastic Search** for full text search
 
 ## Architecture
 
