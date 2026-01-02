@@ -1,0 +1,26 @@
+spring:
+  mvc: # de cho endpoint nao ko co define thi tra ve message trong GlobalExceptionHandler
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false # de cho endpoint nao ko co define thi tra ve message trong GlobalExceptionHandler
+  application:
+    name: main
+  datasource:
+    url: jdbc:postgresql://localhost:5433/db2
+    username: user
+    password: 123
+
+  jpa:
+    hibernate:
+      ddl-auto: none  # ko tu dong sync entity voi database (nguy hiem)
+
+server:
+  port: 8082
+
+user:
+  service:
+    url: http://localhost:8081
+
+assessment:
+  minimum: 8.0

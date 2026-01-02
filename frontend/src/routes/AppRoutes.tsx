@@ -1,0 +1,171 @@
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuthStore } from "../stores/authStore";
+import { lazy, Suspense, useEffect } from "react";
+import { LoadingOverlay } from "../components/ui/LoadingOverlay";
+import UserLayout from "../components/layouts/UserLayout";
+import { toast } from "react-hot-toast";
+
+const HomeNew = lazy(() => import("../pages/Home/Home"));
+const NotFoundPage = lazy(() => import("../pages/404/404"));
+const PDP = lazy(() => import("../pages/PDP/PDP"));
+const PCP = lazy(() => import("../pages/PCP/PCP"));
+const ProfilePage = lazy(() => import("../pages/Profile/ProfilePage"));
+const OrderHistory = lazy(() => import("../pages/Profile/OrderHistory"));
+const OrderDetails = lazy(() => import("../pages/Profile/OrderDetails"));
+const SellerRequest = lazy(() => import("../pages/Profile/SellerRequest"));
+const WatchList = lazy(() => import("../pages/Profile/WatchList"));
+const MyBids = lazy(() => import("../pages/Profile/MyBids"));
+const MyProducts = lazy(() => import("../pages/Profile/MyProducts"));
+const CreateProduct = lazy(() => import("../pages/Seller/CreateProduct"));
+const Checkout = lazy(() => import("../pages/Payment/Checkout"));
+const Information = lazy(() => import("../pages/Payment/Information"));
+const Successful = lazy(() => import("../pages/Payment/Successful"));
+const PaymentReview = lazy(() => import("../pages/Payment/PaymentReview"));
+const SearchOverlay = lazy(() => import("../pages/Search/SearchOverlay"));
+const Appointment = lazy(() => import("../pages/Appointment/Appointment"));
+const Photography = lazy(() => import("../pages/Photography/Photography"));
+const PhotographyServiceDetail = lazy(
+  () => import("../pages/Photography/ServiceDetail")
+);
+
+const Dashboard = lazy(() => import("../pages/Admin/Dashboard"));
+const Products = lazy(() => import("../pages/Admin/Products"));
+const Categories = lazy(() => import("../pages/Admin/Categories"));
+const Users = lazy(() => import("../pages/Admin/Users"));
+
+const SignIn = lazy(() => import("../pages/Auth/SignIn"));
+const SignUp = lazy(() => import("../pages/Auth/SignUp"));
+const VerifyEmail = lazy(() => import("../pages/Auth/VerifyEmail"));
+const ForgotPassword = lazy(() => import("../pages/Auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/Auth/ResetPassword"));
+const Cart = lazy(() => import("../pages/Cart/Cart"));
+const AboutPage = lazy(() => import("../pages/About/About"));
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRole?: 'ADMIN' | 'BIDDER' | 'SELLER' | null;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requiredRole,
+}) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const role = useAuthStore((state) => state.role);
+
+  if (isLoading) {
+    return <LoadingOverlay message="Verifying your account..." fullScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace={true} />;
+  }
+
+  if (requiredRole && role !== requiredRole) {
+    return <Navigate to="/notfound" replace={true} />;
+  }
+
+  return <>{children}</>;
+};
+
+interface GuestRouteProps {
+  children: React.ReactNode;
+  redirectPath?: string;
+}
+
+const GuestRoute: React.FC<GuestRouteProps> = ({
+  children,
+  redirectPath = '/',
+}) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      toast('You have already logged in, please logout', {
+        duration: 2000,
+      });
+    }
+  }, [isAuthenticated, isLoading]);
+
+  if (isLoading) {
+    return <LoadingOverlay message="Verifying your account..." fullScreen />;
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to={redirectPath} replace={true} />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppRoutes = () => {
+  const routes = [
+    { path: "/", element: <HomeNew /> },
+    { path: "/product-page", element: <PDP /> },
+    { path: "/product-page/:id", element: <PDP /> },
+    
+    { path: "/pcp", element: <PCP /> },
+    { path: "/appointment", element: <Appointment /> },
+    { path: "/photography", element: <Photography /> },
+    {
+      path: "/photography/service-detail/:id",
+      element: <PhotographyServiceDetail />,
+    },
+    {
+      path: "/profile",
+      
+      element: (
+        
+        <ProfilePage />
+      ),
+
+    },
+    { path: "/order-history", element: <OrderHistory /> },
+    { path: "/order-details/:id", element: <OrderDetails /> },
+    { path: "/become-seller", element: <SellerRequest /> },
+    { path: "/watchlist", element: <WatchList /> },
+    { path: "/my-bids", element: <MyBids /> },
+    { path: "/my-products", element: <MyProducts /> },
+    { path: "/create-product", element: <CreateProduct /> },
+    { path: "/payment-checkout", element: <Checkout /> },
+    { path: "/payment-information", element: <Information /> },
+    { path: "/payment-successful", element: <Successful /> },
+    { path: "/payment-review", element: <PaymentReview /> },
+    { path: "/order-success", element: <Successful /> },
+
+    { path: "/admin/dashboard", element: <Dashboard /> },
+    { path: "/admin/products", element: <Products /> },
+    { path: "/admin/categories", element: <Categories /> },
+    { path: "/admin/users", element: <Users /> },
+
+    { path: "/signin", element: <GuestRoute> <SignIn /> </GuestRoute>},
+    { path: "/signup", element: <GuestRoute><SignUp /></GuestRoute> },
+    { path: "/verify-email", element: <VerifyEmail />},
+    { path: "/forgot-password", element: <GuestRoute><ForgotPassword /></GuestRoute> },
+    { path: "/reset-password", element: <ResetPassword /> },
+
+    { path: "/cart", element: <Cart /> },
+    { path: "/about", element: <AboutPage /> },
+    { path: "/search", element: <SearchOverlay /> },
+
+    { path: "*", element: <NotFoundPage /> },
+  ];
+
+  return (
+    <Suspense
+      fallback={<LoadingOverlay message="Loading page..." fullScreen />}
+    >
+      <UserLayout>
+        <Routes>
+          {routes.map(({ path, element }) => (
+            <Route key={path} path={path} element={element} />
+          ))}
+        </Routes>
+      </UserLayout>
+    </Suspense>
+  );
+};
+
+export default AppRoutes;
